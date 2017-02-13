@@ -10,9 +10,9 @@ module.exports = {
     var updated = 0;
     var urlDetails = url.parse(watzdprice_url);
     tradeTrackerCom.getZanoxComData(zanox_url, function (record, cb) {
-      if (record[5]!=='price') {
+      if (record[5]!=='price') { // first row
         console.log(record[1]);
-        putProduct(urlDetails, JSON.stringify({
+        var product = JSON.stringify({
           name: record[1].substring(0,255),
           description: record[2].substring(0,1999),
           shop: shop,
@@ -22,15 +22,19 @@ module.exports = {
           url: record[0].substring(0,1999),
           image: record[4].substring(0,1999),
           price: parseFloat(record[5]),
-          datetime: moment().format()
-        }), function (err, operation) {
+          datetime: moment().format()});
+        putProduct(urlDetails, product, function (err, operation) {
+          if (err) {
+            console.error(shop + " - Error putProduct: " + err.message + " - " + JSON.stringify(record) + " - " + JSON.stringify(product));
+            return cb(null);
+          }
           if (operation === 'added') {
             added++;
           }
           if (operation === 'updated') {
             updated++;
           }
-          cb(err);
+          cb(null);
         });
       }
     }, function () {
